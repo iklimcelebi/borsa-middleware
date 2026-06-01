@@ -1,0 +1,13 @@
+services:
+
+  middleware:
+    build: ./middleware
+    ports:
+      - "5000:5000"
+
+  producer:
+    build: ./producer
+    ports:
+      - "5001:5001"
+    depends_on:
+      - middleware
