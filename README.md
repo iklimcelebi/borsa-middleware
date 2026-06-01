@@ -19,7 +19,8 @@ Producer → Middleware → Dashboard
 
 ```bash
 docker compose up --build
+```
 
-Portlar
+## Portlar
 Producer: 5001
 Middleware: 5000
