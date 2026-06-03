@@ -63,7 +63,24 @@ INFO, DEBUG ve WARNING seviyeleri middleware'de işlenmeden düşer.
 ```bash
 docker compose up --build
 ```
+## KVKK & Veri Güvenliği
+Sistemde yer alan hassas veriler KVKK uyumluluğu kapsamında anonimleştirilir:
+- Email adresleri kısmen maskelenir (örn: a***@mail.com)
+- Kredi kartı bilgileri yalnızca son 4 hanesi görünür şekilde saklanır
 
+---
+
+## Performans Optimizasyonu
+Sistem, gereksiz logları (INFO, DEBUG, WARNING) filtreleyerek işlem yükünü azaltır ve performansı artırır. Bu sayede sadece kritik loglar işlenir.
+
+---
+
+## Role-Based Output (Güncellenmiş Açıklama)
+Sistem kullanıcı rolüne göre farklı çıktı formatları üretir:
+
+- web → JSON formatı (developer kullanımı)
+- cyber → CSV formatı (güvenlik analizi)
+- admin → HTML formatı (dashboard görünümü)
 ## Benchmark
 `GET /benchmark` endpoint'i son benchmark sonuçlarını döner.
 
