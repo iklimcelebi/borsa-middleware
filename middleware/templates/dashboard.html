@@ -217,6 +217,11 @@
         .badge.medium {background: #f59e0b;}
         .badge.high {background: #ef4444;}
         .badge.very-high {background: #c026d3;}
+        .badge.payment {background: #22c55e;}
+        .badge.auth {background: #ef4444;}
+        .badge.database {background: #3b82f6;}
+        .badge.network {background: #f97316;}
+        .badge.general {background: #64748b;}
         .empty-state {
             padding: 48px 24px;
             text-align: center;
@@ -251,153 +256,166 @@
         <div class="header-row">
             <div class="header-title">
                 <h1>Middleware SOC Dashboard</h1>
-                <p class="subtitle">Canlı log akışı, seviyeleri ve risk dağılımını gerçek zamanlı olarak izleyin.</p>
+                <p class="subtitle">Log akışının filtreleme, sınıflandırma ve risk dağılımını tek ekranda takip edin.</p>
             </div>
             <span class="meta-tag">Otomatik yenileme: 5s</span>
         </div>
 
         <div class="section card-grid">
             <div class="metric-card">
-                <strong>{{ total_logs }}</strong>
-                <span>Toplam işlem gören log</span>
+                <strong>{{ total_received_logs }}</strong>
+                <span>Toplam Gelen Log</span>
             </div>
             <div class="metric-card">
-                <strong>{{ level_counts['ERROR'] }}</strong>
-                <span>ERROR log sayısı</span>
+                <strong>{{ processed_logs_count }}</strong>
+                <span>İşlenen Log</span>
             </div>
             <div class="metric-card">
-                <strong>{{ level_counts['CRITICAL'] }}</strong>
-                <span>CRITICAL log sayısı</span>
+                <strong>{{ filtered_logs_count }}</strong>
+                <span>Filtrelenen Log</span>
             </div>
         </div>
 
-        <div class="section performance-panel">
-            <div class="performance-card">
-                <strong>{{ total_logs }}</strong>
-                <span>Total Processed Logs</span>
+        <div class="dashboard-grid">
+            <div class="panel chart-panel">
+                <div class="section-title">
+                    <h2>Level Distribution</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="levelChart"></canvas>
+                </div>
             </div>
-            <div class="performance-card">
-                <strong>{{ performance_results['throughput_logs_per_second'] if performance_results['throughput_logs_per_second'] is not none else 'N/A' }}</strong>
-                <span>Average Throughput (logs/s)</span>
-            </div>
-            <div class="performance-card">
-                <strong>{{ performance_results['execution_time_seconds'] if performance_results['execution_time_seconds'] is not none else 'N/A' }}</strong>
-                <span>Last Performance Test Duration (s)</span>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">
-                <h2>Analiz Grafiği</h2>
-            </div>
-            <div class="dashboard-grid single-chart">
-                <div class="panel chart-panel">
-                    <div class="section-title">
-                        <h2>Level Distribution</h2>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="levelChart"></canvas>
-                    </div>
+            <div class="panel chart-panel">
+                <div class="section-title">
+                    <h2>Risk Distribution</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="riskChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <div class="section">
+        <div class="section panel">
             <div class="section-title">
-                <h2>Canlı Log Tablosu</h2>
+                <h2>Last 20 Processed Logs</h2>
             </div>
             <div class="table-wrap">
-                {% if logs %}
                 <table>
                     <thead>
                         <tr>
                             <th>Timestamp</th>
                             <th>Level</th>
-                            <th>User</th>
-                            <th>Transaction ID</th>
+                            <th>Category</th>
+                            <th>Risk</th>
+                            <th>Sender</th>
+                            <th>Transaction</th>
                             <th>Message</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for log in logs %}
-                        <tr>
-                            <td>{{ log.timestamp or '-' }}</td>
-                            <td>
-                                {% set level = (log.level or 'OTHER')|upper %}
-                                {% if level == 'ERROR' %}
-                                    <span class="badge error">{{ level }}</span>
-                                {% elif level == 'WARNING' %}
-                                    <span class="badge warning">{{ level }}</span>
-                                {% elif level == 'INFO' %}
-                                    <span class="badge info">{{ level }}</span>
-                                {% elif level == 'CRITICAL' %}
-                                    <span class="badge critical">{{ level }}</span>
-                                {% else %}
-                                    <span class="badge other">{{ level }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ log.user or '-' }}</td>
-                            <td>{{ log.transaction_id or '-' }}</td>
-                            <td>{{ log.message or '-' }}</td>
-                        </tr>
-                        {% endfor %}
+                        {% if logs %}
+                            {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.timestamp }}</td>
+                                    <td>{{ log.level }}</td>
+                                    <td>
+                                        {% set category = (log.category or 'GENERAL')|upper %}
+                                        <span class="badge {{ category|lower }}">{{ category }}</span>
+                                    </td>
+                                    <td>{{ log.risk_level }}</td>
+                                    <td>{{ log.sender_id }}</td>
+                                    <td>{{ log.transaction_no }}</td>
+                                    <td>{{ log.message }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="empty-state">Henüz işlenmiş log bulunamadı.</td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
-                {% else %}
-                <div class="empty-state">
-                    <p>Henüz işlenen log yok. `/log` endpointinden gönderim yapıldığında burada görünür.</p>
+            </div>
+        </div>
+
+        <div class="section panel">
+            <div class="section-title">
+                <h2>Last Benchmark Result</h2>
+            </div>
+            <div class="performance-panel">
+                <div class="performance-card">
+                    <strong>{{ benchmark_result.total_logs or 0 }}</strong>
+                    <span>Benchmark Toplam Log</span>
                 </div>
-                {% endif %}
+                <div class="performance-card">
+                    <strong>{{ benchmark_result.processed_logs or 0 }}</strong>
+                    <span>Benchmark İşlenen Log</span>
+                </div>
+                <div class="performance-card">
+                    <strong>{{ benchmark_result.filtered_logs or 0 }}</strong>
+                    <span>Benchmark Filtrelenen Log</span>
+                </div>
+                <div class="performance-card">
+                    <strong>{{ benchmark_result.execution_time_seconds or '-' }}</strong>
+                    <span>Çalışma Süresi (s)</span>
+                </div>
+                <div class="performance-card">
+                    <strong>{{ benchmark_result.logs_per_second or '-' }}</strong>
+                    <span>Log / Saniye</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section panel">
+            <div class="section-title">
+                <h2>Used Design Patterns</h2>
+            </div>
+            <div class="panel" style="background: rgba(8, 15, 31, 0.9); border-color: rgba(148, 163, 184, 0.1);">
+                <ul style="margin: 0; padding-left: 1.15rem; color: #cbd5e1;">
+                    <li>✓ Chain of Responsibility (Pipeline)</li>
+                    <li>✓ Strategy Pattern (Role Based Formatter)</li>
+                    <li>✓ Factory Pattern (LogFactory)</li>
+                </ul>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const levelLabels = ["INFO", "WARNING", "ERROR", "CRITICAL"];
-        const levelCounts = {{ [level_counts['INFO'], level_counts['WARNING'], level_counts['ERROR'], level_counts['CRITICAL']] | tojson }};
+        const levelData = {{ level_counts | tojson }};
+        const riskData = {{ risk_counts | tojson }};
 
-        const chartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
-                    titleColor: '#f8fafc',
-                    bodyColor: '#e2e8f0',
-                    borderColor: 'rgba(148, 163, 184, 0.18)',
-                    borderWidth: 1
-                }
-            },
-            scales: {
-                x: {
-                    grid: { color: 'rgba(148, 163, 184, 0.08)' },
-                    ticks: { color: '#cbd5e1' }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(148, 163, 184, 0.08)' },
-                    ticks: { color: '#cbd5e1', precision: 0 }
-                }
-            }
-        };
+        const levelCtx = document.getElementById('levelChart').getContext('2d');
+        const riskCtx = document.getElementById('riskChart').getContext('2d');
 
-        new Chart(document.getElementById('levelChart'), {
-            type: 'bar',
+        new Chart(levelCtx, {
+            type: 'doughnut',
             data: {
-                labels: levelLabels,
+                labels: Object.keys(levelData),
                 datasets: [{
-                    label: 'Log Count',
-                    data: levelCounts,
-                    backgroundColor: ['#3b82f6', '#f97316', '#ef4444', '#8b5cf6'],
-                    borderRadius: 12,
-                    borderSkipped: false,
-                    barThickness: 32
+                    data: Object.values(levelData),
+                    backgroundColor: ['#60a5fa', '#f97316', '#ef4444', '#9333ea'],
+                    borderWidth: 0
                 }]
             },
-            options: chartOptions
+            options: {
+                plugins: { legend: { display: true, labels: { color: '#cbd5e1' } } }
+            }
+        });
+
+        new Chart(riskCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(riskData),
+                datasets: [{
+                    data: Object.values(riskData),
+                    backgroundColor: ['#22c55e', '#f59e0b', '#ef4444', '#c026d3'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                plugins: { legend: { display: true, labels: { color: '#cbd5e1' } } }
+            }
         });
     </script>
 </body>

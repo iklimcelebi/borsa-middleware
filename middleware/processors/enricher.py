@@ -1,16 +1,20 @@
 import random
 from datetime import datetime
 
+from processors.classifier import classify_log
+
 def enrich_log(log):
     log["processed_at"] = str(datetime.now())
+    log["category"] = classify_log(log)
 
-    if log["level"] == "INFO":
+    level = (log.get("level") or "").upper()
+    if level == "INFO":
         log["risk_level"] = "LOW"
-    elif log["level"] == "WARNING":
+    elif level == "WARNING":
         log["risk_level"] = "MEDIUM"
-    elif log["level"] == "ERROR":
+    elif level == "ERROR":
         log["risk_level"] = "HIGH"
-    elif log["level"] == "CRITICAL":
+    elif level == "CRITICAL":
         log["risk_level"] = "VERY HIGH"
     else:
         log["risk_level"] = "UNKNOWN"

@@ -1,3 +1,4 @@
 def format_csv(log):
-    values = [str(v) for v in log.values()]
+    fields = ["timestamp", "level", "message", "category", "risk_level", "sender_id", "transaction_no"]
+    values = [str(log.get(field, "")) for field in fields]
     return ",".join(values)

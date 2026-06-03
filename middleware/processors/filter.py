@@ -1,4 +1,5 @@
 def filter_log(log):
-    if log["level"] in ["INFO", "DEBUG"]:
+    level = (log.get("level") or "").upper()
+    if level in ["INFO", "DEBUG", "WARNING"]:
         return None
     return log
