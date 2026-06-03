@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="5">
-    <title>Middleware SOC Dashboard</title>
+    <title>Middleware Güvenlik Operasyon Merkezi</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -127,11 +127,21 @@
         }
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 20px;
+            align-items: start;
         }
         .chart-panel {
-            min-height: 420px;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .chart-container {
+            position: relative;
+            min-height: 260px;
+            max-width: 520px;
+            margin: 0 auto;
         }
         .panel {
             background: rgba(15, 23, 42, 0.9);
@@ -255,7 +265,7 @@
     <div class="page-shell">
         <div class="header-row">
             <div class="header-title">
-                <h1>Middleware SOC Dashboard</h1>
+                <h1>Middleware Güvenlik Operasyon Merkezi</h1>
                 <p class="subtitle">Log akışının filtreleme, sınıflandırma ve risk dağılımını tek ekranda takip edin.</p>
             </div>
             <span class="meta-tag">Otomatik yenileme: 5s</span>
